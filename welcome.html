@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="full-screen">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智慧地理信息系统</title>
+    <style>
+        /* 全屏样式 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        /* 地图容器 */
+        #map-container {
+            width: 100%;
+            height: 100vh; /* 全屏高度 */
+            position: relative;
+        }
+
+        /* 操作面板 */
+        .control-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+        }
+
+        /* 按钮样式 */
+        .btn-group {
+            display: grid;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #096dd9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f5222d;
+            color: white;
+        }
+
+        /* 标题栏 */
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>智慧三维校园平台</h1>
+        <p>当前用户：Default | 最后定位：济南市长清区</p>
+    </div>
+
+    <div id="map-container"></div>
+
+    <div class="control-panel">
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="window.location.href='/analysis.html'">
+                📊 空间分析
+            </button>
+            <button class="btn btn-primary" onclick="window.location.href='/location.html'">
+                📍 实时定位
+            </button>
+            <button class="btn btn-primary" onclick="window.location.href='/3DMAP.html'">
+                🗺️ 三维地图
+            </button>
+            <button class="btn btn-secondary" onclick="window.location.href='/login.html'">
+                🔒 安全退出
+            </button>
+        </div>
+    </div>
+
+    <!-- 高德地图API -->
+    <script src="https://webapi.amap.com/maps?v=2.0&key=522523205c86d180787817ac69d69176"></script>
+    <script>
+        // 增强版地图初始化
+        function initMap() {
+            const map = new AMap.Map('map-container', {
+                zoom: 15,
+                center: [116.7900, 36.5400],
+                pitch: 60,  // 三维倾斜角度
+                viewMode: '3D'
+            });
+
+            // 添加增强控件
+            map.addControl(new AMap.ScaleControl());
+            map.addControl(new AMap.ToolBar({
+                position: 'RB'  // 右下角位置
+            }));
+
+            // 实时定位功能
+            AMap.plugin('AMap.Geolocation', () => {
+                const geolocation = new AMap.Geolocation({
+                    enableHighAccuracy: true,
+                    showMarker: true,
+                    showButton: false
+                });
+                map.addControl(geolocation);
+                
+                // 每30秒更新位置
+                setInterval(() => {
+                    geolocation.getCurrentPosition((status, result) => {
+                        if (status === 'complete') {
+                            console.log('位置更新:', result.position);
+                        }
+                    });
+                }, 30000);
+            });
+        }
+
+        // 智能加载策略
+        if (document.readyState === 'complete') {
+            initMap();
+        } else {
+            window.addEventListener('load', initMap);
+        }
+    </script>
+</body>
+</html>

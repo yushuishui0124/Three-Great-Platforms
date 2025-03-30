@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>步行路径规划</title>
+    <style>
+        #container { width: 100%; height: 75vh; }
+        .input-group {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        input, button {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button { 
+            background: #4CAF50; 
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="input-group">
+        <input type="text" id="start" placeholder="起点位置">
+        <input type="text" id="end" placeholder="终点位置">
+        <button onclick="planPath()">规划步行路线</button>
+    </div>
+    <div id="container"></div>
+
+    <script src="https://webapi.amap.com/maps?v=2.0&key=522523205c86d180787817ac69d69176"></script>
+    <script>
+        let map = null;
+        let walking = null;
+
+        function initMap() {
+            map = new AMap.Map('container', {
+                zoom: 14,
+                center: [116.7900, 36.5400]
+            });
+            walking = new AMap.Walking({ map: map });
+        }
+
+        function planPath() {
+            const start = document.getElementById('start').value;
+            const end = document.getElementById('end').value;
+
+            if (!start || !end) {
+                alert('请填写起点和终点');
+                return;
+            }
+
+            walking.clear();
+            walking.search([
+                { keyword: start },
+                { keyword: end }
+            ], (status, result) => {
+                if (status === 'complete') {
+                    map.setFitView();
+                    showWalkingDetails(result);
+                } else {
+                    alert('步行路线规划失败: ' + (result.info || '请求异常'));
+                }
+            });
+        }
+
+        function showWalkingDetails(result) {
+            const route = result.routes[0];
+            const distance = (route.distance / 1000).toFixed(2);
+            const time = Math.ceil(route.time / 60);
+            
+            alert(`步行路线详情：
+            总距离：${distance}公里
+            预计耗时：约${time}分钟`);
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>

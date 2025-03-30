@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生注册</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>学生注册</h1>
+        <form id="registerForm">
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit">注册</button>
+        </form>
+        
+        <div class="info-box">
+            <button onclick="showAccountInfo()">查看特殊账号信息</button>
+            <div id="accountInfo" style="display:none; margin-top:15px;">
+                <p>教师账号请联系管理员</p>
+                <p>管理员账号请联系系统负责人</p>
+            </div>
+        </div>
+        <div class="login-link">
+            <p>已有账号<a href="login.html">立即登录</a></p>
+        </div>
+    </div>
+
+    <script>
+        // 注册功能
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value,
+                    role: 'student'
+                })
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        });
+
+        // 显示账号信息
+        function showAccountInfo() {
+            const infoDiv = document.getElementById('accountInfo');
+            infoDiv.style.display = infoDiv.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

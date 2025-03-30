@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>用户登录</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<style>
+    /* 注册链接样式 */
+    .register-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .register-link a {
+        color: #1890ff;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    .register-link a:hover {
+        color: #096dd9;
+        text-decoration: underline;
+    }
+</style>
+<body>
+    <div class="container">
+        <h1>用户登录</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <label>身份:</label>
+                <select id="role">
+                    <option value="admin">管理员</option>
+                    <option value="teacher">教师</option>
+                    <option value="student">学生</option>
+                </select>
+            </div>
+            <button type="submit">登录</button>
+            <div class="register-link">
+                <p>没有账号？<a href="register.html">立即注册</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value,
+                    role: document.getElementById('role').value
+                })
+            });
+
+            const result = await response.json();
+            if (result.user) {
+                switch(result.user.role) {
+                    case 'admin': window.location = 'Administrator.html'; break;
+                    case 'teacher': window.location = 'teacher.html'; break;
+                    case 'student': window.location = 'welcome.html'; break;
+                }
+            } else {
+                alert(result.message || '登录失败');
+            }
+        });
+    </script>
+</body>
+</html>

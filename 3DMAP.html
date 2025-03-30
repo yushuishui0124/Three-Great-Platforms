@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>高德三维地图演示</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #container {
+            width: 100%;
+            height: 100vh;
+        }
+        .control-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <button onclick="resetView()">重置视角</button>
+        <button class="btn-locate" onclick="locateUser()">定位我的位置</button>
+        <button onclick="toggleBuildings()">切换3D建筑</button>
+        <button onclick="toggleTerrain()">切换地形</button>
+    </div>
+    <div id="container"></div>
+
+    <script src="https://webapi.amap.com/maps?v=2.0&key=522523205c86d180787817ac69d69176"></script>
+    <script>
+        let map = null;
+        let showBuildings = true;
+        let showTerrain = true;
+
+        // 初始化3D地图
+        function initMap() {
+            map = new AMap.Map('container', {
+                viewMode: '3D',           // 开启3D视图
+                pitch: 65,                // 初始俯仰角（0-83）
+                rotation: -25,            // 初始旋转角度
+                zoom: 16,                 // 初始缩放级别
+                center: [116.7900, 36.5400], // 初始中心点
+                showIndoorMap: false,     // 关闭室内地图
+                features: ['bg', 'road']  // 基础要素
+            });
+
+            // 添加控件
+            map.addControl(new AMap.Scale());
+            map.addControl(new AMap.HawkEye());
+            map.addControl(new AMap.ControlBar({
+                position: { right: '10px', top: '10px' }
+            }));
+
+            // 自动旋转视角（演示用）
+            let rotate = 0;
+            setInterval(() => {
+                if (!map) return;
+                rotate += 0.2;
+                map.setRotation(rotate % 360);
+            }, 50);
+        }
+
+        // 重置视角
+        function resetView() {
+            map.setRotation(-25);
+            map.setPitch(65);
+            map.setZoom(16);
+            map.setCenter([116.7900, 36.5400]);
+        }
+//定位
+let locationMarker = null;
+        let geolocation = null;
+
+        // 新增定位功能函数
+        function locateUser() {
+            if (!geolocation) {
+                AMap.plugin('AMap.Geolocation', () => {
+                    geolocation = new AMap.Geolocation({
+                        enableHighAccuracy: true, // 高精度定位
+                        timeout: 10000,
+                        buttonPosition: 'RB' 
+                    });
+                    map.addControl(geolocation);
+                    geolocation.getCurrentPosition(onLocationSuccess, onLocationError);
+                });
+            } else {
+                geolocation.getCurrentPosition(onLocationSuccess, onLocationError);
+            }
+        }
+
+        // 新增定位成功回调
+        function onLocationSuccess(status, result) {
+            if (status === 'complete') {
+                // 移除旧标记
+                if (locationMarker) locationMarker.setMap(null);
+
+                // 创建新标记
+                locationMarker = new AMap.Marker({
+                    position: result.position,
+                    content: '<div class="location-marker"></div>',
+                    offset: new AMap.Pixel(-12, -12),
+                    map: map
+                });
+
+                // 调整视角
+                map.setCenter(result.position);
+                map.setZoom(18);
+                map.setPitch(65);
+                map.setRotation(0);
+            }
+        }
+
+        // 新增定位失败处理
+        function onLocationError(error) {
+            console.error('定位失败:', error);
+            alert('定位失败，请检查浏览器定位权限设置');
+        }
+        // 切换3D建筑显示
+        function toggleBuildings() {
+            showBuildings = !showBuildings;
+            map.setFeatures(showBuildings ? 
+                ['bg', 'road', 'building'] : 
+                ['bg', 'road']
+            );
+        }
+
+        // 切换地形显示
+        function toggleTerrain() {
+            showTerrain = !showTerrain;
+            map.setTerrain(showTerrain ? 2 : 0); // 2表示显示地形
+        }
+
+        // 添加3D标记
+        function add3DMarker(lnglat, content) {
+            new AMap.Marker({
+                position: lnglat,
+                content: content,
+                map: map,
+                offset: new AMap.Pixel(-15, -30)
+            });
+        }
+
+        // 初始化加载
+        window.onload = function() {
+            // 添加3D标记示例
+            initMap();
+            setTimeout(() => {
+                add3DMarker([116.397428, 39.90923], 
+                    '<div style="background:red; padding:5px; border-radius:50%">★</div>');
+            }, 2000);
+        };
+
+        // 窗口大小变化适配
+        window.onresize = () => map && map.setFitView();
+    </script>
+</body>
+</html>
